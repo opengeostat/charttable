@@ -5,8 +5,7 @@ Copyright 2016, Adrian Martinez Vargas.
 Licensed under GPL.
 """
 
-
-from distutils.core import setup
+from setuptools import setup
 
 
 # define properties for setup

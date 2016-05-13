@@ -10,7 +10,7 @@ of the GPL license.  See the LICENSE.txt file for details.
          
 """    
                                                                   
-import charttable
+from charttable import *
 
 
 
