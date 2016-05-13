@@ -1,0 +1,28 @@
+#setuptools distribution folders
+/build
+/dist
+
+#python metadata 
+/*.egg
+/*.egg-info
+
+#compiled python modules/cython precompiled
+*.pyc
+*.so
+*.pyd
+*.c
+
+#temporary files
+*~
+/develop_tmp
+/cross-check-gslib
+.spyderworkspace
+.spyderproject
+
+#Ipython check points
+/.ipynb_checkpoints
+
+#spyder project
+.spyderproject
+.spyderworkspace
+
