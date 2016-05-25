@@ -16,7 +16,6 @@ The css for extra formating is not included, Using the global parameters from IP
 """
 
 import warnings
-import pandas as pd
 from IPython.display import display, HTML 
 from colour import Color
 import numpy as np
