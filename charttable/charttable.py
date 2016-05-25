@@ -20,7 +20,7 @@ from IPython.display import display, HTML
 from colour import Color
 import numpy as np
 
-class Leyend_num():
+class Leyend_num(object):
     """
     Leyend_num(vmin=0, 
                vmax=10, 
@@ -69,32 +69,32 @@ class Leyend_num():
     c= None
     v= None
     
-    def __init__(self, vmin=0, vmax=10, cmax = Color("red"), cmin = Color("blue"), undef = Color("grey"), nval= 5): 
+    def __init__(self, vmin=0, vmax=10, cmax = "red", cmin = "blue", undef = "grey", nval= 5): 
 
         #check parameters
-        assert isinstance(cmax, Color), " Error : cmax is not an instance of Color "
-        assert isinstance(cmin, Color), " Error : cmin is not an instance of Color "
-        assert isinstance(undef, Color), " Error : undef is not an instance of Color "
+        #assert isinstance(cmax, Color), " Error : cmax is not an instance of Color "
+        #assert isinstance(cmin, Color), " Error : cmin is not an instance of Color "
+        #assert isinstance(undef, Color), " Error : undef is not an instance of Color "
 
         # general parameters
         self.nval= nval
         self.vmin=vmin
         self.vmax=vmax
-        self.cmax = cmax 
-        self.cmin = cmin
+        self.cmax = Color(cmax) 
+        self.cmin = Color(cmin)
         self.undef = undef
 
         # define arrays
-        self.c= np.empty(nval+1, dtype = object)
-        self.v= np.empty(nval+1, dtype = object) 
+        self.c= np.empty(self.nval+1, dtype = object)
+        self.v= np.empty(self.nval+1, dtype = object) 
         
         # set undefined colour        
-        self.c[0]= undef
+        self.c[0]= self.undef
         self.v[0]= np.nan   
         
         # asign values to color and value interval
-        self.c[1:]= np.array(list(cmin.range_to(cmax, nval)))
-        self.v[1:]= np.linspace(vmin, vmax, nval)
+        self.c[1:]= np.array(list(self.cmin.range_to(self.cmax, self.nval)))
+        self.v[1:]= np.linspace(self.vmin, self.vmax, self.nval)
      
     
     def apply_colour(self, data): 
@@ -128,7 +128,7 @@ class Leyend_num():
         return cc
 
 
-class Leyend_cat():
+class Leyend_cat(object):
     """
     Leyend_cat(values 
                cmax = Color("red"), 
@@ -174,18 +174,18 @@ class Leyend_cat():
     c= None
     v= None
     
-    def __init__(self, values, cmax = Color("red"), cmin = Color("blue"), undef = Color("grey")): 
+    def __init__(self, values, cmax = "red", cmin = "blue", undef = "grey"): 
 
         #check parameters
-        assert isinstance(cmax, Color), " Error : cmax is not an instance of Color "
-        assert isinstance(cmin, Color), " Error : cmin is not an instance of Color "
-        assert isinstance(undef, Color), " Error : undef is not an instance of Color "
+        #assert isinstance(cmax, Color), " Error : cmax is not an instance of Color "
+        #assert isinstance(cmin, Color), " Error : cmin is not an instance of Color "
+        #assert isinstance(undef, Color), " Error : undef is not an instance of Color "
         
         # general parameters
         self.nval = len(values)
-        self.cmax = cmax 
-        self.cmin = cmin
-        self.undef = undef
+        self.cmax = Color(cmax)
+        self.cmin = Color(cmin)
+        self.undef = Color(undef)
 
         # define arrays
         self.v = np.empty(self.nval+1, dtype = object)
@@ -197,7 +197,7 @@ class Leyend_cat():
         
         # asign values to color and value interval
         self.v[1:] = np.sort(values)
-        self.c[1:] = np.array(list(cmin.range_to(cmax, self.nval)))
+        self.c[1:] = np.array(list(self.cmin.range_to(self.cmax, self.nval)))
 
 
     def apply_colour(self, data): 
@@ -211,7 +211,7 @@ class Leyend_cat():
         >>> cc = my_leyend_num.apply_colour(['granite', 'basalt', 'NA'])
          
         """        
-        dat = pd.DataFrame({'v':data})['v']
+        dat = np.array(data)
         
         cc = np.empty(data.shape[0], dtype = object)
         cc[:] = np.nan
@@ -221,14 +221,14 @@ class Leyend_cat():
         
         # assign other colours
         for i in range(1, self.nval+1): 
-            cc[dat.values==self.v[i]] = self.c[i]
+            cc[dat==self.v[i]] = self.c[i]
             
         
         return cc
  
  
 
-class HTMLTable():
+class HTMLTable(object):
     """
     HTMLTable( data )
     
@@ -265,14 +265,7 @@ class HTMLTable():
     of information can be represented in one column
     
     """      
-    #properties   
-    table = {}     
-    nrows = 0 
-    
-    columns = []
-    
-    
-    html = ""
+	
     
     # css for bars configuration
     __css = """
@@ -318,7 +311,13 @@ class HTMLTable():
     
     
     def __init__ (self):
-        pass
+		#properties   
+		self.table = {}     
+		self.nrows = 0 
+
+		self.columns = []
+
+		self.html = ""
     
     def clear_table(self):
         """
@@ -416,7 +415,8 @@ class HTMLTable():
         Makes the HTML code of the table on self.html
         
         """
-
+		
+        self.html = ""
         
         # add header
         self.html = self.__css + "<table class='chartlist'>\n"
