@@ -235,20 +235,21 @@ class HTMLTable():
     
     Define and create tables with special formats: bars and coloured
     columns. This is useful for exploratory data analysis
-    
-    Parameters
-    ----------
-    data : Pandas DataFrame 
+   
            
     Attributes
     ----------
-    data : Pandas DataFrame  
-        Table used to create HTML especial columns 
     table : dict 
         Table with special columns
     html : str
         HTML code of the table with special columns
-        
+    
+    nrows : int
+        Number of rows
+    
+    columns: list of str
+        Columns labels. The table will be plot in the same order 
+    
     Note
     ----
     
@@ -265,18 +266,17 @@ class HTMLTable():
     of information can be represented in one column
     
     """      
-    #properties
-    data = None    
+    #properties   
     table = {}     
     nrows = 0 
     
-    sequenence = []
+    columns = []
     
     
     html = ""
     
     # css for bars configuration
-    css = """
+    __css = """
 
       <style type="text/css">
         table {
@@ -318,20 +318,8 @@ class HTMLTable():
     """    
     
     
-    def __init__ (self, data):
-        assert isinstance(data, pd.DataFrame), "data is not a pandas DataFrame" 
-        self.data = data.copy(deep=True)
-        
-        #add index to table
-        self.table['Index']= {'name':'Index',  # name to be displayed in table HTML
-                              'format': [True, False, False ], # format [Text(t/f), bar(t/f), ccolour(t/f)]
-                              'text':self.data.index.values, # text to be diplayed in each cell
-                              'bar': None,                   # bar size [0-100%] to be plotted
-                              'colour': None}               # colour assigned to the bar
-                                
-        self.nrows = self.data.shape[0]
-     
-        self.sequenence=['Index']
+    def __init__ (self):
+        pass
     
     def clear_table(self):
         """
@@ -340,21 +328,13 @@ class HTMLTable():
         """
         #clear table
         self.table={}
-        
-        #add index to table
-        self.table['Index']= {'name':'Index',  # name to be displayed in table HTML
-                              'format': [True, False, False ], # format [Text(t/f), bar(t/f), ccolour(t/f)]
-                              'text':self.data.index.values, # text to be diplayed in each cell
-                              'bar': None,                   # bar size [0-100%] to be plotted
-                              'colour': None}               # colour asigned to the bar
                                 
-        self.nrows = self.data.shape[0]
+        self.nrows = 0
      
-        self.sequenence=['Index']
          
                      
     
-    def addcolumn(self, name, text, bar=None, colour=None, overwrite=False): 
+    def addcolumn(self, name, text=None, bar=None, colour=None, overwrite=False): 
         """
         addcolumn(name, text, bar=None, colour=None,overwrite=False)
         
@@ -364,42 +344,58 @@ class HTMLTable():
         ----------
         name : str 
             column name 
-        text : array 
+        text : 1D array like
             array of textual values for the column
-        bar : array 
+        bar : 1D array like 
             array with bar sizes (0-100) 
-        colour : array 
+        colour : 1D array like 
             array of colours compatibles to the class Colour
         overwrite: boolean
             set to True to overwrite column with existing name
         
         """
         
+		
+		
+        #Check that we have data
+        assert not all([(text is None), (bar is None), (colour is None)]), 'you may provide data' 
+                
         # check that the new column name is not in the table 
         if overwrite==False:
             assert name not in self.table.keys(), 'The name "{}" already exist in table, use overwrite=True to replace'.format(name) 
-        
-        
-        # prepare format
-        cformat = [False, False, False ]
-        
-        
-        # check some data format
+
+        cformat = [False,False,False]
+		
+		#check some format and data
         if text is not None: 
-            assert len(text) == self.nrows, 'Bad shape in text len(text) != {} '.format(self.nrows)
-            # update format
             cformat[0] = True 
+            if self.nrows>0: # adding new column
+                assert len(text) == self.nrows, 'Bad shape in text len(text) != {} '.format(self.nrows)
+            else:
+                self.nrows= len(text)
+
             
         if bar is not None: 
-            assert len(bar)  == self.nrows, 'Bad shape in text len(text) != {} '.format(self.nrows)
-            # update format
             cformat[1] = True 
+            if self.nrows>0:
+                assert len(bar)  == self.nrows, 'Bad shape in text len(text) != {} '.format(self.nrows)
+            else:
+                self.nrows= len(bar)            
+                if text is not None:
+                    assert len(text) == len(bar), 'Bad shape len(text) != len(bar) '
+            
             
         if colour is not None: 
-            assert len(colour)==self.nrows, 'Bad shape in colour; arrays with len != {} '.format(self.nrows)
-            # update format
-            cformat[2] = True 
-        
+            cformat[2] = True
+            ncol=len(text)
+            if self.nrows>0:
+                assert len(colour)==self.nrows, 'Bad shape in colour; arrays with len != {} '.format(self.nrows)
+            else:
+                self.nrows= len(colour)
+                if text is not None:
+                    assert len(text) == len(colour), 'Bad shape len(text) != len(colour) '
+                if bar is not None:
+                    assert len(bar) == len(colour), 'Bad shape len(bar) != len(colour) '          
         
         #create the template dictionary
         column = {'name': name,  # name to be displayed in table HTML
@@ -411,7 +407,7 @@ class HTMLTable():
         
         self.table[name]= column
         
-        self.sequenence.append(name)
+        self.columns.append(name)
         
     
     def make_html(self):
@@ -424,7 +420,7 @@ class HTMLTable():
 
         
         # add header
-        self.html = self.css + "<table class='chartlist'>\n"
+        self.html = self.__css + "<table class='chartlist'>\n"
         
         #add column header
         self.html += "    <tr>\n"
@@ -443,7 +439,7 @@ class HTMLTable():
             self.html += "    <tr>\n" 
             
             #add columns
-            for c in self.sequenence:
+            for c in self.columns:
 
                 # get data
                 text = ""
